@@ -1,4 +1,4 @@
-package app.tea_tracker.api;
+package app.teatracker.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
