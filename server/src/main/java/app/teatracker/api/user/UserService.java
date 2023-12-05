@@ -16,9 +16,13 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        // Encrypt the user's password before saving
-        user.setPassword(encryptPassword(user.getPassword()));
-        return userRepository.save(user);
+        boolean userExists = userRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail());
+        if (userExists) {
+            throw new IllegalArgumentException("User with the same login or email already exists");
+        } else {
+            user.setPassword(encryptPassword(user.getPassword()));
+            return userRepository.save(user);
+        }
     }
 
     public User getUserById(Long id) {
