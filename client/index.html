@@ -1,11 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tea Tracker!</title>
+    <title>Tea-Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            background-color: teal;
+            padding: 10px;
+        }
+
+        .logo {
+            flex: 1;
+            /* Add styles for the logo here */
+        }
+
+        .user-display {
+            /* Styles for user display */
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: orange(233, 233, 233, 0.548)
+            padding 10px;
+            /* Styles for the sidebar */
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 10px;
+        }
+
+        .current-task, .task-history {
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        .task-history div:nth-child(odd) {
+            color: #007bff; /* Blue color for odd tasks */
+        }
+
+.task-history div:nth-child(even) {
+            color: #28a745; /* Green color for even tasks */
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f3f3f3;
+        }
+
+        #display {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        let startTime;
+        let elapsedTime = 0;
+        let timerInterval;
+        let currentTask = '';
+        let tasks = [];
+
+        function timeToString(time) {
+            let diffInHrs = time / 3600000;
+            let hh = Math.floor(diffInHrs);
+
+            let diffInMin = (diffInHrs - hh) * 60;
+            let mm = Math.floor(diffInMin);
+
+            let diffInSec = (diffInMin - mm) * 60;
+            let ss = Math.floor(diffInSec);
+
+            let formattedHH = hh.toString().padStart(2, "0");
+            let formattedMM = mm.toString().padStart(2, "0");
+            let formattedSS = ss.toString().padStart(2, "0");
+
+            return `${formattedHH}:${formattedMM}:${formattedSS}`;
+        }
+
+        function start() {
+            currentTask = document.getElementById("taskInput").value;
+            if (!currentTask) {
+                alert("Please enter a task description.");
+                return;
+            }
+
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(function printTime() {
+                elapsedTime = Date.now() - startTime;
+                document.getElementById("display").innerText = timeToString(elapsedTime);
+            }, 1000);
+
+            document.getElementById("startButton").disabled = true;
+            document.getElementById("stopButton").disabled = false;
+        }
+
+        function stop() {
+    clearInterval(timerInterval);
+
+    let endTime = new Date();
+    tasks.push({
+        description: currentTask,
+        startDate: new Date(startTime).toLocaleDateString(undefined), // Store only the date part
+        startTime: new Date(startTime).toLocaleTimeString(undefined, {        
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }),
+        endDate: endTime.toLocaleDateString(undefined), // Store only the date part
+        endTime: endTime.toLocaleTimeString(undefined, {        
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }),
+        duration: timeToString(elapsedTime)
+    });
+    
+
+
+            elapsedTime = 0;
+            document.getElementById("display").innerText = "00:00:00";
+            document.getElementById("taskInput").value = "";
+            document.getElementById("startButton").disabled = false;
+            document.getElementById("stopButton").disabled = true;
+
+            updateTaskHistory();
+            updateSidebar();
+            calculateTotalTimeToday(); // Update total time after stopping a task
+        }
+
+        function updateTaskHistory() {
+            let history = document.getElementById("taskHistory");
+            history.innerHTML = "";
+
+            tasks.forEach(task => {
+                let taskElem = document.createElement("div");
+                taskElem.innerHTML = `<b>Task:</b> ${task.description}<br>
+                                      <b>Start:</b> ${task.startTime}<br>
+                                      <b>End:</b> ${task.endTime}<br>
+                                      <b>Duration:</b> ${task.duration}`;
+                history.appendChild(taskElem);
+            });
+        }
+
+        function calculateTotalTimeToday() {
+    let total = 0;
+    const today = new Date().toLocaleDateString();
+    tasks.forEach(task => {
+        if (task.startDate === today) {
+            const durationParts = task.duration.split(':');
+            const hours = parseInt(durationParts[0]);
+            const minutes = parseInt(durationParts[1]);
+            const seconds = parseInt(durationParts[2]);
+            total += hours * 3600 + minutes * 60 + seconds;
+        }
+    });
+
+    const totalHrs = Math.floor(total / 3600);
+    total %= 3600;
+    const totalMins = Math.floor(total / 60);
+    const totalSecs = total % 60;
+    document.getElementById('totalTimeToday').innerText = `Total Time Today: ${totalHrs.toString().padStart(2, '0')}:${totalMins.toString().padStart(2, '0')}:${totalSecs.toString().padStart(2, '0')}`;
+}
+
+        
+
+function updateCurrentTime() {
+    const currentTime = new Date().toLocaleTimeString();
+    document.getElementById('currentTime').innerText = `Current Time: ${currentTime}`;
+        }
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+            return [d.getUTCFullYear(), weekNo];
+        }
+
+        function updateSidebar() {
+            let weeks = new Set();
+            tasks.forEach(task => {
+                const taskDate = new Date(task.startTime);
+                weeks.add(getWeekNumber(taskDate).join('-'));
+            });
+
+            let sidebarContent = document.getElementById('sidebarContent');
+            sidebarContent.innerHTML = '';
+            weeks.forEach(week => {
+                let weekElem = document.createElement('div');
+                weekElem.innerText = `Week: ${week}`;
+                sidebarContent.appendChild(weekElem);
+            });
+        }
+
+        // Call updateCurrentTime every second to update the time
+        setInterval(updateCurrentTime, 1000);
+
+        // Initial call to set the current time
+        updateCurrentTime();
+        
+    </script>
 </head>
 <body>
-    <h1>Hello, I am Tea Tracker!</h1>
+    <header>
+        <div class="logo"><img src="https://media.discordapp.net/attachments/1086341795669098510/1191015599824982087/icon.png?ex=65a3e6b6&is=659171b6&hm=92b9afeefd91410c9733e32c73b4b6a042f176f217dca81ad0716f8dc492f6ba&=&format=webp&quality=lossless&width=277&height=247" alt="a placeholder logo"></div>
+        <h1>Tea-Tracker</h1>
+
+        <div class="user-display">User: Admin</div>
+    </header>
+    
+
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Weeks</h2>
+            <div id="sidebarContent">
+                <!-- Weeks will be dynamically added here -->
+            </div>
+        </aside>
+
+        <main>
+            <div class="current-task">
+                <textarea id="taskInput" placeholder="What task are you tracking?..."></textarea>
+                <div id="display">00:00:00</div>
+                <button id="startButton" onclick="start()">Start</button>
+                <button id="stopButton" onclick="stop()" disabled>Stop</button>
+                <div id="totalTimeToday" class="total-time-today">
+                    Total Time Today: 00:00:00
+                </div>
+            </div>
+            <div id="taskHistory" class="task-history">
+                <!-- Task history will be displayed here -->
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div id="currentTime">Current Time: <!-- Display GMT 0 time here --></div>
+    </footer>
 </body>
 </html>
