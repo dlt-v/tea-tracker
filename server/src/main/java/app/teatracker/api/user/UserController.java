@@ -36,7 +36,7 @@ public class UserController {
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword()); // Ideally, the password should be encrypted in the service layer
+        user.setPassword(userDto.getPassword());
         return user;
     }
 
@@ -45,7 +45,6 @@ public class UserController {
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        // Do not include sensitive data like passwords
         return dto;
     }
 
